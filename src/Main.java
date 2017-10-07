@@ -75,43 +75,63 @@ public class Main
         List<char[][]> case_list = getCases(input_array);
         for (int i = 0; i < case_list.size(); i++)
         {
+            System.out.println("Case " + (i + 1) + ":");
 
-            System.out.println();
-            System.out.println("CASE " + (i + 1));
-            System.out.println();
-
-            for (char[] j : case_list.get(i))
-            {
-                System.out.println(Arrays.toString(j));
-            }
-            System.out.println();
+//            for (char[] j : case_list.get(i))
+//            {
+//                System.out.println(Arrays.toString(j));
+//            }
+//            System.out.println();
 
             control_map = new TreeMap();
             Set<Entry<Character, Entry<Integer, Integer>>> starting_points = getStartingPoints(case_list.get(i));
 
-            for (Entry j : control_map.entrySet())
-            {
-                System.out.println(j);
-            }
-            System.out.println();
+//            for (Entry<Character, Entry<Integer, Integer>> j : starting_points)
+//            {
+//                System.out.println(j.getKey() + "=" + j.getValue().getKey() + ',' + j.getValue().getValue());
+//            }
+//            System.out.println();
 
             for (Entry<Character, Entry<Integer, Integer>> j : starting_points)
             {
-                System.out.println(j.getKey() + "=" + j.getValue().getKey() + ',' + j.getValue().getValue());
+                if (conquer(j.getKey(), case_list.get(i), j.getValue().getKey(), j.getValue().getValue(), true))
+                {
+                    control_map.put(j.getKey(), control_map.get(j.getKey()) + 1);
+                }
+                else
+                {
+                    contested++;
+                }
             }
-            System.out.println();
 
-            
-            
-            for (char[] j : case_list.get(i))
+//            for (char[] j : case_list.get(i))
+//            {
+//                System.out.println(Arrays.toString(j));
+//            }
+//            System.out.println();
+//
+//            for (Entry j : control_map.entrySet())
+//            {
+//                System.out.println(j);
+//            }
+//            System.out.println();
+
+            for (char j : control_map.keySet())
             {
-                System.out.println(Arrays.toString(j));
+                if (control_map.get(j) > 0)
+                {
+                    System.out.println(j + " " + control_map.get(j));
+                }
             }
-            System.out.println();
+            if (contested > 0)
+            {
+                System.out.println("contested " + contested);
+            }
         }
+
     }
 
-    private static boolean conquer(char faction, char[][] grid, int row, int column)
+    private static boolean conquer(char faction, char[][] grid, int row, int column, boolean isStart)
     {
         if (row < 0 || column < 0 || row >= grid.length || column >= grid[row].length)
         {
@@ -121,13 +141,13 @@ public class Main
         {
             return false;
         }
-        else if (grid[row][column] == EMPTY_LAND)
+        else if (grid[row][column] == EMPTY_LAND || isStart)
         {
             grid[row][column] = faction;
-            return conquer(faction, grid, row + 1, column + 1)
-                    || conquer(faction, grid, row + 1, column - 1)
-                    || conquer(faction, grid, row - 1, column + 1)
-                    || conquer(faction, grid, row - 1, column - 1);
+            return conquer(faction, grid, row, column + 1, false)
+                    && conquer(faction, grid, row, column - 1, false)
+                    && conquer(faction, grid, row + 1, column, false)
+                    && conquer(faction, grid, row - 1, column, false);
         }
         else
         {
@@ -144,7 +164,7 @@ public class Main
             {
                 if (grid[i][j] != EMPTY_LAND && grid[i][j] != MOUNTAIN)
                 {
-                    starting_points.add(new SimpleEntry<Character, Entry<Integer, Integer>>(grid[i][j], new SimpleEntry<Integer, Integer>(i, j)));
+                    starting_points.add(new SimpleEntry(grid[i][j], new SimpleEntry(i, j)));
                     control_map.put(grid[i][j], 0);
                 }
             }
@@ -154,7 +174,7 @@ public class Main
 
     private static List<char[][]> getCases(String[] input_array)
     {
-        List<char[][]> case_list = new ArrayList<char[][]>();
+        List<char[][]> case_list = new ArrayList();
         int i = 1;
         while (i < input_array.length)
         {
