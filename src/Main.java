@@ -4,8 +4,15 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.TreeMap;
 
 /**
  * <p>
@@ -51,13 +58,94 @@ public class Main
 
     private static final String INPUT_FILE_NAME = "input.in";
 
+    private static final char EMPTY_LAND = '.';
+
+    private static final char MOUNTAIN = '#';
+
+    private static Map<Character, Integer> control_map;
+
+    private static int contested = 0;
+
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) throws IOException
     {
         String[] input_array = readInput(INPUT_FILE_NAME);
+        List<char[][]> case_list = getCases(input_array);
+        for (int i = 0; i < case_list.size(); i++)
+        {
 
+            System.out.println();
+            System.out.println("CASE " + (i + 1));
+            System.out.println();
+
+            for (char[] j : case_list.get(i))
+            {
+                System.out.println(Arrays.toString(j));
+            }
+            System.out.println();
+
+            control_map = new TreeMap();
+            Set<Entry<Character, Entry<Integer, Integer>>> starting_points = getStartingPoints(case_list.get(i));
+
+            for (Entry j : control_map.entrySet())
+            {
+                System.out.println(j);
+            }
+            System.out.println();
+
+            for (Entry<Character, Entry<Integer, Integer>> j : starting_points)
+            {
+                System.out.println(j.getKey() + " " + j.getValue().getKey() + ',' + j.getValue().getValue());
+            }
+            System.out.println();
+
+            for (char[] j : case_list.get(i))
+            {
+                System.out.println(Arrays.toString(j));
+            }
+            System.out.println();
+        }
+    }
+
+    private static Set<Entry<Character, Entry<Integer, Integer>>> getStartingPoints(char[][] grid)
+    {
+        Set<Entry<Character, Entry<Integer, Integer>>> starting_points = new HashSet();
+        for (int i = 0; i < grid.length; i++)
+        {
+            for (int j = 0; j < grid[i].length; j++)
+            {
+                if (grid[i][j] != EMPTY_LAND && grid[i][j] != MOUNTAIN)
+                {
+                    starting_points.add(new SimpleEntry<Character, Entry<Integer, Integer>>(grid[i][j], new SimpleEntry<Integer, Integer>(i, j)));
+                    control_map.put(grid[i][j], 0);
+                }
+            }
+        }
+        return starting_points;
+    }
+
+    private static List<char[][]> getCases(String[] input_array)
+    {
+        List<char[][]> case_list = new ArrayList<char[][]>();
+        int i = 1;
+        while (i < input_array.length)
+        {
+            int row = Integer.parseInt(input_array[i]);
+            i++;
+            int column = Integer.parseInt(input_array[i]);
+            i++;
+            char[][] grid = new char[row][column];
+            for (int j = 0; j < row; j++)
+            {
+                grid[j] = input_array[i].toCharArray();
+                i++;
+            }
+            case_list.add(grid);
+        }
+
+        return case_list;
     }
 
     /**
