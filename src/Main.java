@@ -97,15 +97,41 @@ public class Main
 
             for (Entry<Character, Entry<Integer, Integer>> j : starting_points)
             {
-                System.out.println(j.getKey() + " " + j.getValue().getKey() + ',' + j.getValue().getValue());
+                System.out.println(j.getKey() + "=" + j.getValue().getKey() + ',' + j.getValue().getValue());
             }
             System.out.println();
 
+            
+            
             for (char[] j : case_list.get(i))
             {
                 System.out.println(Arrays.toString(j));
             }
             System.out.println();
+        }
+    }
+
+    private static boolean conquer(char faction, char[][] grid, int row, int column)
+    {
+        if (row < 0 || column < 0 || row >= grid.length || column >= grid[row].length)
+        {
+            return true;
+        }
+        else if (grid[row][column] != faction && grid[row][column] != EMPTY_LAND && grid[row][column] != MOUNTAIN)
+        {
+            return false;
+        }
+        else if (grid[row][column] == EMPTY_LAND)
+        {
+            grid[row][column] = faction;
+            return conquer(faction, grid, row + 1, column + 1)
+                    || conquer(faction, grid, row + 1, column - 1)
+                    || conquer(faction, grid, row - 1, column + 1)
+                    || conquer(faction, grid, row - 1, column - 1);
+        }
+        else
+        {
+            return true;
         }
     }
 
