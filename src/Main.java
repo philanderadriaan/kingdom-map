@@ -6,7 +6,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -64,7 +63,11 @@ public class Main
 
     private static Map<Character, Integer> control_map;
 
-    private static int contested = 0;
+    private static Set<Entry<Character, Entry<Integer, Integer>>> contested;
+
+    private static Set<Entry<Character, Entry<Integer, Integer>>> starting_points;
+
+    private static Set<Entry<Character, Entry<Integer, Integer>>> duplicate;
 
     /**
      * @param args the command line arguments
@@ -77,44 +80,21 @@ public class Main
         {
             System.out.println("Case " + (i + 1) + ":");
 
-//            for (char[] j : case_list.get(i))
-//            {
-//                System.out.println(Arrays.toString(j));
-//            }
-//            System.out.println();
-
-            control_map = new TreeMap();
-            Set<Entry<Character, Entry<Integer, Integer>>> starting_points = getStartingPoints(case_list.get(i));
-
-//            for (Entry<Character, Entry<Integer, Integer>> j : starting_points)
-//            {
-//                System.out.println(j.getKey() + "=" + j.getValue().getKey() + ',' + j.getValue().getValue());
-//            }
-//            System.out.println();
+            control_map = new TreeMap<Character, Integer>();
+            contested = new HashSet<Entry<Character, Entry<Integer, Integer>>>();
+            starting_points = getStartingPoints(case_list.get(i));
+            duplicate = new HashSet<Entry<Character, Entry<Integer, Integer>>>();
 
             for (Entry<Character, Entry<Integer, Integer>> j : starting_points)
             {
-                if (conquer(j.getKey(), case_list.get(i), j.getValue().getKey(), j.getValue().getValue(), true))
+                if (!duplicate.contains(j) && !contested.contains(j))
                 {
-                    control_map.put(j.getKey(), control_map.get(j.getKey()) + 1);
-                }
-                else
-                {
-                    contested++;
+                    if (conquer(j.getKey(), case_list.get(i), j.getValue().getKey(), j.getValue().getValue(), true, j.getValue().getKey(), j.getValue().getValue()))
+                    {
+                        control_map.put(j.getKey(), control_map.get(j.getKey()) + 1);
+                    }
                 }
             }
-
-//            for (char[] j : case_list.get(i))
-//            {
-//                System.out.println(Arrays.toString(j));
-//            }
-//            System.out.println();
-//
-//            for (Entry j : control_map.entrySet())
-//            {
-//                System.out.println(j);
-//            }
-//            System.out.println();
 
             for (char j : control_map.keySet())
             {
@@ -123,31 +103,63 @@ public class Main
                     System.out.println(j + " " + control_map.get(j));
                 }
             }
-            if (contested > 0)
-            {
-                System.out.println("contested " + contested);
-            }
+            //if (contested.size() > 0)
+            //{
+            System.out.println("contested " + contested.size());
+            //}
         }
 
     }
 
-    private static boolean conquer(char faction, char[][] grid, int row, int column, boolean isStart)
+    private static void checkDuplicate(char faction, int row, int column, int origin_row, int origin_column)
     {
+
+        for (Entry<Character, Entry<Integer, Integer>> j : starting_points)
+        {
+
+
+            if (j.getKey().equals(faction)
+                    && j.getValue().getKey().equals(row)
+                    && j.getValue().getValue().equals(column)
+                    && !(j.getValue().getKey().equals(origin_row)
+                    && j.getValue().getValue().equals(origin_column)))
+            {
+
+                duplicate.add(new SimpleEntry(faction, new SimpleEntry(row, column)));
+            }
+        }
+    }
+
+    /**
+     *
+     * @param faction
+     * @param grid
+     * @param row
+     * @param column
+     * @param isStart
+     * @return
+     */
+    private static boolean conquer(char faction, char[][] grid, int row, int column, boolean isStart, int origin_row, int origin_column)
+    {
+
+        checkDuplicate(faction, row, column, origin_row, origin_column);
+
         if (row < 0 || column < 0 || row >= grid.length || column >= grid[row].length)
         {
             return true;
         }
         else if (grid[row][column] != faction && grid[row][column] != EMPTY_LAND && grid[row][column] != MOUNTAIN)
         {
+            contested.add(new SimpleEntry(grid[row][column], new SimpleEntry(row, column)));
             return false;
         }
         else if (grid[row][column] == EMPTY_LAND || isStart)
         {
             grid[row][column] = faction;
-            return conquer(faction, grid, row, column + 1, false)
-                    && conquer(faction, grid, row, column - 1, false)
-                    && conquer(faction, grid, row + 1, column, false)
-                    && conquer(faction, grid, row - 1, column, false);
+            return conquer(faction, grid, row, column + 1, false, origin_row, origin_column)
+                    && conquer(faction, grid, row, column - 1, false, origin_row, origin_column)
+                    && conquer(faction, grid, row + 1, column, false, origin_row, origin_column)
+                    && conquer(faction, grid, row - 1, column, false, origin_row, origin_column);
         }
         else
         {
@@ -155,6 +167,11 @@ public class Main
         }
     }
 
+    /**
+     *
+     * @param grid
+     * @return
+     */
     private static Set<Entry<Character, Entry<Integer, Integer>>> getStartingPoints(char[][] grid)
     {
         Set<Entry<Character, Entry<Integer, Integer>>> starting_points = new HashSet();
@@ -172,6 +189,11 @@ public class Main
         return starting_points;
     }
 
+    /**
+     *
+     * @param input_array
+     * @return
+     */
     private static List<char[][]> getCases(String[] input_array)
     {
         List<char[][]> case_list = new ArrayList();
